@@ -1,3 +1,8 @@
+.classpath
+.settings
+src/main/resources/client_secrets.json
+.project
+bin/
 target/
 pom.xml.tag
 pom.xml.releaseBackup
