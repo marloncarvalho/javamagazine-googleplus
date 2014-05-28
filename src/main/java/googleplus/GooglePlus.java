@@ -20,9 +20,6 @@ import com.google.api.services.plus.Plus;
 import com.google.api.services.plus.model.Activity;
 import com.google.api.services.plus.model.ActivityFeed;
 import com.google.api.services.plus.model.Person;
-import com.google.api.services.plusDomains.PlusDomains;
-import com.google.api.services.plusDomains.model.Circle;
-import com.google.api.services.plusDomains.model.CircleFeed;
 
 /**
  * Exemplo de uso do Google+ em uma aplicação.
@@ -37,7 +34,6 @@ public class GooglePlus {
 	private HttpTransport httpTransport;
 	private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
 	private Plus plus;
-	private PlusDomains plusDomains;
 
 	/**
 	 * Solicitar a autorização do usuário para obter suas informações privadas
@@ -76,42 +72,12 @@ public class GooglePlus {
 						
 			plus = new Plus.Builder(httpTransport, JSON_FACTORY, credential).
 					setApplicationName(APPLICATION_NAME).
-					build();
-			
-			plusDomains = new PlusDomains.Builder(httpTransport, JSON_FACTORY, credential).
-					setApplicationName(APPLICATION_NAME).
-					build();
+					build();			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * Obter a lista de Círculos que o usuário possui.
-	 * 
-	 * @return Lista de Círculos.
-	 */
-	public List<Circle> getCircles() {
-		PlusDomains.Circles.List listCircles;
-		try {
-			listCircles = plusDomains.circles().list("me");
-			listCircles.setMaxResults(5L);
-			CircleFeed circleFeed = listCircles.execute();
-			return circleFeed.getItems();	
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-	
-	/**
-	 * Postar uma Mensagem no Google+.
-	 * 
-	 * @param message Mensagem a ser postada.
-	 */
-	public void post(String message) {
-		
-	}
-	
 	/**
 	 * Obter uma lista contendo as atividades de um usuário no Google+.
 	 * 
