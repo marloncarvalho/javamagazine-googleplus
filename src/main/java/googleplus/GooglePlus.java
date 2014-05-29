@@ -19,6 +19,7 @@ import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.plus.Plus;
 import com.google.api.services.plus.model.Activity;
 import com.google.api.services.plus.model.ActivityFeed;
+import com.google.api.services.plus.model.PeopleFeed;
 import com.google.api.services.plus.model.Person;
 
 /**
@@ -47,10 +48,7 @@ public class GooglePlus {
 		InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 		GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, inputStreamReader);
 
-		List<String> scope = Arrays.asList(
-			    "https://www.googleapis.com/auth/plus.me",
-			    "https://www.googleapis.com/auth/plus.circles.read",
-			    "https://www.googleapis.com/auth/plus.stream.write");
+		List<String> scope = Arrays.asList("https://www.googleapis.com/auth/plus.me");
 
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.
 				Builder(httpTransport, JSON_FACTORY,clientSecrets, scope).
@@ -58,6 +56,64 @@ public class GooglePlus {
 				build();
 
 		return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
+	}
+
+	/**
+	 * Buscar por usuários.
+	 * 
+	 * @param name Nome para usar na busca.
+	 * @param maxResults Máximo de resultados.
+	 * @return Lista de usuários.
+	 */
+	public List<Person> search(String name, long maxResults) throws RuntimeException {
+		try {
+			Plus.People.Search searchPeople = plus.people().search(name);
+			searchPeople.setMaxResults(5L);
+
+			PeopleFeed peopleFeed;
+			peopleFeed = searchPeople.execute();
+			return peopleFeed.getItems();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}		
+	}
+	
+	/**
+	 * Buscar e exibir os dados de pessoas que tenham um determinado nome.
+	 * 
+	 * @param name Nome.
+	 */
+	public void showPeopleWithName(String name) {
+		List<Person> people = search(name, 5);
+		for(Person person : people) {
+			showPerson(person);
+			System.out.println("\n\n");
+		}
+	}
+	
+	/**
+	 * Exibir os dados de uma pessoa, incluindo as últimas 5 atividades publicadas por ela na rede social.
+	 * 
+	 * @param person Pessoa.
+	 */
+	public void showPerson(Person person) {
+		System.out.println("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]");
+		System.out.println("Name: " + person.getDisplayName() + " \n URL: " + person.getUrl());	
+		System.out.println("------------------------------------------------------------------------------------------");
+		showActivities(person);
+		System.out.println("[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]");
+	}
+	
+	/**
+	 * Exibir as últimas 5 atividades de um usuário.
+	 * 
+	 * @param person Usuário.
+	 */
+	public void showActivities(Person person) {
+		List<Activity> activities = getActivities(person.getId(), 5);
+		for(Activity activity : activities) {
+			System.out.println("Activity: " + activity.getObject().getContent() + "\n");
+		}
 	}
 
 	/**
@@ -81,13 +137,14 @@ public class GooglePlus {
 	/**
 	 * Obter uma lista contendo as atividades de um usuário no Google+.
 	 * 
+	 * @param userID Identificador do usuário que queremos obter as atividades.
 	 * @param maxResults Quantidade máxima de resultados a serem retornados.
 	 * @return Lista de atividades do usuário.
 	 */
-	public List<Activity> getActivities(long maxResults) {
+	public List<Activity> getActivities(String userID, long maxResults) {
 		Plus.Activities.List listActivities;
 		try {
-			listActivities = plus.activities().list("me", "public");
+			listActivities = plus.activities().list(userID, "public");
 			listActivities.setMaxResults(maxResults);
 			ActivityFeed feed = listActivities.execute();
 			return feed.getItems();
@@ -131,14 +188,7 @@ public class GooglePlus {
 	public static void main(String...args) {
 		GooglePlus p = new GooglePlus();
 		p.connect();
-		
-//		for(Circle circle : p.getCircles()) {
-//			System.out.println(circle.getDisplayName());
-//		}
-		
-//		for(Activity activity : p.getActivities(5)) {
-//			System.out.println(activity.getObject().getContent());
-//		}
+		p.showPeopleWithName("Marlon Carvalho");
 	}
 	
 }
